@@ -1,4 +1,3 @@
 pyreadstat
-matplotlib.pyplot
-matplotlib.lines
+matplotlib
 seaborn
