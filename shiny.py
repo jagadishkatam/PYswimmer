@@ -153,7 +153,7 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
     # Assign colors based on the treatment group
     data['color'] = data['TRT01P'].map(treatment_colors)
     # ylower = data['max_ady'].min()
-    xupper = data['max_ady'].max()
+    xupper = max(data['max_ady'].max(), data['DTHDY2'].max(skipna=True))
 
     # Create the bar chart
     plt.figure(figsize=(10, 7))
@@ -255,7 +255,7 @@ def plot_(data,selected_trt):
   
     # Assign colors based on the treatment group
     data['color'] = data['TRT01P'].map(treatment_colors)
-    xupper = max(data['max_ady'].max(), data['DTHDY'].max(skipna=True))
+    xupper = max(data['max_ady'].max(), data['DTHDY2'].max(skipna=True))
 
     plt.figure(figsize=(10, 7))
     # for _, row in data.iterrows():
