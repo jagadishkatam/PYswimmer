@@ -308,7 +308,7 @@ st.sidebar.markdown("\n ## Responses")
 
 # st.write("Selected AVALC values:", selected_avalc)
 with st.container():
-    if upload is not None and len(upload) == 2:
+    if upload is not None and len(upload) >= 2:
         st.subheader('Swimmer Plot for Treatment Exposure and Objective Response')
         data1 = upload[0]  # First uploaded file
         data2 = upload[1]  # Second uploaded file
