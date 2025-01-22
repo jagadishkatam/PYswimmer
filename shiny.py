@@ -92,9 +92,9 @@ def preprocess_data(data1, data2):
 
     return df, list(unique_trt)
 
-dfs, unique = preprocess_data('adrs', 'adsl')
+# dfs, unique = preprocess_data('adrs', 'adsl')
 
-print(dfs[dfs['USUBJID']=='004'])
+# print(dfs[dfs['USUBJID']=='004'])
 
 def plot_avalc_symbols(data, selected_trt, selected_avalc):
     """
