@@ -303,7 +303,7 @@ def plot_(data,selected_trt):
 
 st.sidebar.markdown("## User Inputs")
 st.sidebar.markdown("\n")
-upload = st.sidebar.file_uploader('Choose a file', accept_multiple_files=True)
+upload = st.sidebar.file_uploader('Choose a file',type=["sas7bdat"], accept_multiple_files=True)
 st.sidebar.markdown("\n ## Responses")
 
 # st.write("Selected AVALC values:", selected_avalc)
