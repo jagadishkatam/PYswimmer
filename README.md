@@ -1,2 +1,2 @@
 # PYswimmer
-[Swimmer plot by Python](https://pyswimmer-mfhiorvqe8hynurau7ttyb.streamlit.app/)
+[Swimmer plot by Python](https://pyswimmer.streamlit.app/)
