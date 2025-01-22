@@ -18,15 +18,15 @@ def preprocess_data(data1, data2):
         tuple: (processed DataFrame, list of unique treatments)
     """
     # st.set_option('deprecation.showPyplotGlobalUse', False)
-    adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
-
+    # adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
+    adrs, meta = pyreadstat.read_sas7bdat(f'{data1}.sas7bdat')
     df_sub_list = adrs['USUBJID'].unique()
 
     print(df_sub_list)
 
     isinstance(df_sub_list, list)
 
-    adsl, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data2}.sas7bdat')
+    adsl, meta = pyreadstat.read_sas7bdat(f'{data2}.sas7bdat')
 
     # Step 1: Filter for specific PARAMCD
     df = adrs[adrs['PARAMCD'] == 'OVRLRESP']
@@ -105,10 +105,6 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
     - data (pd.DataFrame): The DataFrame containing the data.
     - selected_avalc (list): A list of AVALC values for which symbols will be used in the plot.
     """
-    import matplotlib.pyplot as plt
-    from matplotlib.lines import Line2D
-    import streamlit as st
-
     # Define mappings for AVALC to markers and colors
     avalc_markers = {
         'Death': 's',
@@ -307,15 +303,18 @@ def plot_(data,selected_trt):
 
 st.sidebar.markdown("## User Inputs")
 st.sidebar.markdown("\n")
-upload = st.sidebar.file_uploader('Choose a file')
+upload = st.sidebar.file_uploader('Choose a file', accept_multiple_files=True)
 st.sidebar.markdown("\n ## Responses")
 
 # st.write("Selected AVALC values:", selected_avalc)
 with st.container():
-    if upload is not None:
+    if upload is not None and len(upload) == 2:
         st.subheader('Swimmer Plot for Treatment Exposure and Objective Response')
-        upload1 = upload.name.replace('.sas7bdat','')
-        processed_df, unique_trt = preprocess_data(upload1, "adsl")
+        upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
+            
+        upload1 = upload_files[0]
+        upload2 = upload_files[1]
+        processed_df, unique_trt = preprocess_data(upload1, upload2)
         selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
         # Filter the data based on selected treatments
         df2 = processed_df[processed_df['TRT01P'].isin(selected_trt)]
@@ -329,12 +328,12 @@ with st.container():
         # Add feedback if no AVALC values are selected
         if selected_avalc:
             with st.spinner("Generating plot with symbols..."):
-                
+                    
                 plot_avalc_symbols(df2, selected_trt, selected_avalc)
         else:
             st.warning("No Response values selected. Plotting without symbols.")
             with st.spinner("Generating plot..."):
-                
+                    
                 plot_(df2,selected_trt)
     else:
         st.info("Please upload a file to generate the plot.")
