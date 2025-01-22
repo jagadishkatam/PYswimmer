@@ -310,10 +310,11 @@ st.sidebar.markdown("\n ## Responses")
 with st.container():
     if upload is not None and len(upload) == 2:
         st.subheader('Swimmer Plot for Treatment Exposure and Objective Response')
-        upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
+        data1 = upload[0]  # First uploaded file
+        data2 = upload[1]  # Second uploaded file
             
-        upload1 = upload_files[0]
-        upload2 = upload_files[1]
+        # upload1 = upload_files[0]
+        # upload2 = upload_files[1]
         processed_df, unique_trt = preprocess_data(upload1, upload2)
         selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
         # Filter the data based on selected treatments
