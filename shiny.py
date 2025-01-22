@@ -17,16 +17,24 @@ def preprocess_data(data1, data2):
     Returns:
         tuple: (processed DataFrame, list of unique treatments)
     """
-    # st.set_option('deprecation.showPyplotGlobalUse', False)
+        # Save the uploaded files to temporary files
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp1, \
+         tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp2:
+        
+        temp1.write(file1.read())
+        temp2.write(file2.read())
+        temp1.flush()
+        temp2.flush()
+      # st.set_option('deprecation.showPyplotGlobalUse', False)
     # adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
-    adrs, meta = pyreadstat.read_sas7bdat(data1)
+    adrs, meta = pyreadstat.read_sas7bdat(temp1.name)
     df_sub_list = adrs['USUBJID'].unique()
 
     print(df_sub_list)
 
     isinstance(df_sub_list, list)
 
-    adsl, meta = pyreadstat.read_sas7bdat(data2)
+    adsl, meta = pyreadstat.read_sas7bdat(temp2.name)
 
     # Step 1: Filter for specific PARAMCD
     df = adrs[adrs['PARAMCD'] == 'OVRLRESP']
