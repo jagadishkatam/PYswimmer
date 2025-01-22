@@ -2,6 +2,7 @@ import pyreadstat
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 import streamlit as st
 import seaborn as sns
 import tempfile
@@ -175,7 +176,7 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
                 color='white',
                 edgecolor='black',
                 alpha=0.6,
-                hatch='\\',
+                hatch='\\\\',
                 label='Off Treatment' if _ == 0 else ""  # Add a single label for the legend
             )
 
@@ -202,7 +203,7 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
         ]
 
         legend_elements2.append(
-        Line2D([0], [0], color='white', lw=4, label='Off Treatment')
+        Patch(facecolor='white', edgecolor='black', hatch='\\\\', label='Off Treatment')
         )
     
 
@@ -280,7 +281,7 @@ def plot_(data,selected_trt):
                 color='white',
                 edgecolor='black',
                 alpha=0.6,
-                hatch='\\',
+                hatch='\\\\',
                 label='Off Treatment' if _ == 0 else ""  # Add a single label for the legend
             )
 
@@ -290,7 +291,7 @@ def plot_(data,selected_trt):
     ]
     
     legend_elements.append(
-        Line2D([0], [0], color='white', lw=4, label='Off Treatment')
+        Patch(facecolor='white', edgecolor='black', hatch='\\\\', label='Off Treatment')
     )
     
     plt.legend(handles=legend_elements, title='Treatments', loc='best')
@@ -320,7 +321,7 @@ st.sidebar.markdown("\n ## Responses")
 # st.write("Selected AVALC values:", selected_avalc)
 with st.container():
     if upload is not None and len(upload) == 2:
-        st.subheader('Swimmer Plot for Treatment Exposure and Objective Response')
+        st.markdown('#### Swimmer Plot for Treatment Exposure and Objective Response')
         # upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
             
         upload1 = upload[0]
