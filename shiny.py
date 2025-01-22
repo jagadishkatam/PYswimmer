@@ -175,6 +175,7 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
                 color='white',
                 edgecolor='black',
                 alpha=0.6,
+                hatch='\\',
                 label='Off Treatment' if _ == 0 else ""  # Add a single label for the legend
             )
 
@@ -279,7 +280,7 @@ def plot_(data,selected_trt):
                 color='white',
                 edgecolor='black',
                 alpha=0.6,
-                hatch='x',
+                hatch='\\',
                 label='Off Treatment' if _ == 0 else ""  # Add a single label for the legend
             )
 
