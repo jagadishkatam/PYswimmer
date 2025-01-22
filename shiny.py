@@ -19,14 +19,14 @@ def preprocess_data(data1, data2):
     """
     # st.set_option('deprecation.showPyplotGlobalUse', False)
     # adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
-    adrs, meta = pyreadstat.read_sas7bdat(f'{data1}.sas7bdat')
+    adrs, meta = pyreadstat.read_sas7bdat(data1)
     df_sub_list = adrs['USUBJID'].unique()
 
     print(df_sub_list)
 
     isinstance(df_sub_list, list)
 
-    adsl, meta = pyreadstat.read_sas7bdat(f'{data2}.sas7bdat')
+    adsl, meta = pyreadstat.read_sas7bdat(data2)
 
     # Step 1: Filter for specific PARAMCD
     df = adrs[adrs['PARAMCD'] == 'OVRLRESP']
