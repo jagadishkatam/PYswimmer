@@ -279,6 +279,7 @@ def plot_(data,selected_trt):
                 color='white',
                 edgecolor='black',
                 alpha=0.6,
+                hatch='x',
                 label='Off Treatment' if _ == 0 else ""  # Add a single label for the legend
             )
 
