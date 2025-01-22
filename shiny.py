@@ -22,8 +22,8 @@ def preprocess_data(data1, data2):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp1, \
          tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp2:
         
-        temp1.write(file1.read())
-        temp2.write(file2.read())
+        temp1.write(data1.read())
+        temp2.write(data2.read())
         temp1.flush()
         temp2.flush()
       # st.set_option('deprecation.showPyplotGlobalUse', False)
