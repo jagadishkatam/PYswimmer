@@ -314,7 +314,7 @@ with st.container():
             
         data1 = upload_files[0]
         data2 = upload_files[1]
-        processed_df, unique_trt = preprocess_data(upload1, upload2)
+        processed_df, unique_trt = preprocess_data(data1, data2)
         selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
         # Filter the data based on selected treatments
         df2 = processed_df[processed_df['TRT01P'].isin(selected_trt)]
