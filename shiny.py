@@ -19,14 +19,14 @@ def preprocess_data(data1, data2):
     """
     # st.set_option('deprecation.showPyplotGlobalUse', False)
     # adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
-    adrs, meta = pyreadstat.read_sas7bdat(f'{data1}.sas7bdat')
+    adrs, meta = pyreadstat.read_sas7bdat(data1)
     df_sub_list = adrs['USUBJID'].unique()
 
     print(df_sub_list)
 
     isinstance(df_sub_list, list)
 
-    adsl, meta = pyreadstat.read_sas7bdat(f'{data2}.sas7bdat')
+    adsl, meta = pyreadstat.read_sas7bdat(data2)
 
     # Step 1: Filter for specific PARAMCD
     df = adrs[adrs['PARAMCD'] == 'OVRLRESP']
@@ -310,10 +310,10 @@ st.sidebar.markdown("\n ## Responses")
 with st.container():
     if upload is not None and len(upload) == 2:
         st.subheader('Swimmer Plot for Treatment Exposure and Objective Response')
-        upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
+        # upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
             
-        upload1 = upload_files[0]
-        upload2 = upload_files[1]
+        upload1 = upload[0]
+        upload2 = upload[1]
         processed_df, unique_trt = preprocess_data(upload1, upload2)
         selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
         # Filter the data based on selected treatments
