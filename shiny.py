@@ -6,6 +6,113 @@ from matplotlib.patches import Patch
 import streamlit as st
 import seaborn as sns
 import tempfile
+import os
+
+
+def preprocess_data_df(data1, data2):
+    """
+    Preprocess the input dataframes and return the processed DataFrame and unique treatments.
+
+    Parameters:
+        df (pd.DataFrame): Main dataset containing treatment data.
+        adsl (pd.DataFrame): Dataset containing additional subject-level information.
+
+    Returns:
+        tuple: (processed DataFrame, list of unique treatments)
+    """
+    # Save the uploaded files to temporary files
+    # with tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp1, \
+    #      tempfile.NamedTemporaryFile(delete=False, suffix=".sas7bdat") as temp2:
+        
+    #     temp1.write(data1.read())
+    #     temp2.write(data2.read())
+    #     temp1.flush()
+    #     temp2.flush()
+    # st.set_option('deprecation.showPyplotGlobalUse', False)
+    # adrs, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data1}.sas7bdat')
+    # adrs, meta = pyreadstat.read_sas7bdat(temp1.name)
+    adrs = data1.copy() 
+    adrs['USUBJID'] = adrs['USUBJID'].astype(str)
+    # df_sub_list = adrs['USUBJID'].unique()
+
+    # print(df_sub_list)
+
+    # adsl, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data2}.sas7bdat')
+    # adsl, meta = pyreadstat.read_sas7bdat(temp2.name)
+    adsl = data2.copy() 
+    adsl['USUBJID'] = adsl['USUBJID'].astype(str)
+    # Step 1: Filter for specific PARAMCD
+    df = adrs[adrs['PARAMCD'] == 'OVRLRESP']
+
+    # Step 2: Keep relevant columns
+    columns_to_keep = ['USUBJID', 'AVISIT', 'AVISITN', 'AVALC', 'ADY', 'TRT01P','PARAMCD']
+    df = df[columns_to_keep]
+
+
+
+    # Step 3: Calculate the maximum ADY for each subject
+    new_data = (
+        df.groupby(["USUBJID"], as_index=False)
+        .agg(max_ady=("ADY", "max"))
+    )
+    df = pd.merge(df, new_data, on="USUBJID", how="left", indicator=False)
+
+    # Step 4: Prepare adsl for merging
+    adsl_columns = ['USUBJID', 'DTHDT', 'DTHDY', 'DTHFL','TRT01P']
+    adsl = adsl[adsl_columns]
+    adsl['ADY'] = adsl['DTHDY']
+    adsl = adsl[(adsl['DTHFL'] == 'Y') & (adsl['TRT01P'].notna())]
+    adsl['AVALC'] = 'Death'
+    
+    df.to_csv('test1.csv')
+    adsl.to_csv('test2.csv')
+    # Step 5: Combine adsl with the main dataframe
+    df = pd.concat([df, adsl], ignore_index=True)
+
+    adsl_columns2 = ['USUBJID', 'DTHDY']
+    adsl2 = adsl[adsl_columns2]
+    adsl2 = adsl2.rename(columns={'DTHDY': 'DTHDY2'})
+
+    df = pd.merge(
+        df,
+        adsl2,  # Select relevant columns from ADSL
+        on='USUBJID',
+        how='left'
+    )
+
+    df.to_csv('test3.csv')
+    # Step 6: Forward fill max_ady values
+    df['max_ady'] = df.groupby('USUBJID')['max_ady'].ffill()
+
+    # Step 7: Extract numeric portion of USUBJID and sort by USUBJID and ADY
+    # df['USUBJID'] = df['USUBJID'].str[2:5]
+    df = df.sort_values(by=['USUBJID', 'ADY'], ascending=[True, True])
+
+    # Step 8: Assign numeric codes for USUBJID
+    df['USUBJID_numeric'] = pd.Categorical(df['USUBJID']).codes
+
+
+    # Step 9: Sort and encode treatment groups
+    df = df.sort_values(by=['TRT01P'], ascending=True)
+    df.to_csv('test4.csv')
+    df['TRT01P_numeric'] = pd.Categorical(df['TRT01P']).codes
+    df.to_csv('test5.csv')
+
+    # Step 10: Filter out rows with missing max_ady values
+    df = df[df['max_ady'].notna()]
+
+    # Step 11: Add a prefix to TRT01P
+    df['TRT01P'] = 'TRT-' + df['TRT01P_numeric'].fillna('').astype(str)
+
+    df['DTHDY'] = df['DTHDY'] - df['max_ady']
+
+    # Step 12: Extract unique treatment groups
+    unique_records = df[['TRT01P', 'TRT01P_numeric']].drop_duplicates()
+    unique_trt = unique_records['TRT01P'].unique()
+
+    return df, list(unique_trt)
+
+
 
 
 def preprocess_data(data1, data2):
@@ -36,6 +143,7 @@ def preprocess_data(data1, data2):
 
     isinstance(df_sub_list, list)
 
+    # adsl, meta = pyreadstat.read_sas7bdat(f'C:/Users/jagad/OneDrive/Documents/python/test/{data2}.sas7bdat')
     adsl, meta = pyreadstat.read_sas7bdat(temp2.name)
 
     # Step 1: Filter for specific PARAMCD
@@ -156,8 +264,11 @@ def plot_avalc_symbols(data, selected_trt, selected_avalc):
     # ylower = data['max_ady'].min()
     xupper = max(data['max_ady'].max(), data['DTHDY2'].max(skipna=True))
 
-    # Create the bar chart
-    plt.figure(figsize=(10, 7))
+    # Dynamically adjust height based on the number of subjects
+    num_subjects = data['USUBJID'].nunique()
+    height = max(5, num_subjects * 0.5)  # Minimum height of 5, scaling factor of 0.5
+
+    plt.figure(figsize=(10, height))
 
     for _, row in data.iterrows():
         plt.barh(
@@ -259,7 +370,11 @@ def plot_(data,selected_trt):
     data['color'] = data['TRT01P'].map(treatment_colors)
     xupper = max(data['max_ady'].max(), data['DTHDY2'].max(skipna=True))
 
-    plt.figure(figsize=(10, 7))
+    # Dynamically adjust height based on the number of subjects
+    num_subjects = data['USUBJID'].nunique()
+    height = max(5, num_subjects * 0.5)  # Minimum height of 5, scaling factor of 0.5
+
+    plt.figure(figsize=(10, height))
     # for _, row in data.iterrows():
     for _, row in data.iterrows():
         # Plot "On Treatment" (max_ady)
@@ -313,39 +428,88 @@ def plot_(data,selected_trt):
     st.pyplot(plt.gcf())
 
 
+data_source = st.sidebar.radio("Select Data Source", ["Pre-loaded CSVs", "Upload CSVs"])
+
 st.sidebar.markdown("## User Inputs")
 st.sidebar.markdown("\n")
 upload = st.sidebar.file_uploader('Choose a file', accept_multiple_files=True)
 st.sidebar.markdown("\n ## Responses")
 
-# st.write("Selected AVALC values:", selected_avalc)
-with st.container():
-    if upload is not None and len(upload) == 2:
-        st.markdown('#### Swimmer Plot for Treatment Exposure and Objective Response')
-        # upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
-            
-        upload1 = upload[0]
-        upload2 = upload[1]
-        processed_df, unique_trt = preprocess_data(upload1, upload2)
-        selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
-        # Filter the data based on selected treatments
-        df2 = processed_df[processed_df['TRT01P'].isin(selected_trt)]
+if data_source == "Pre-loaded CSVs":
+    # Directory containing pre-loaded CSV files
+    csv_folder = "./csv_folder"
+    csv_files = [f for f in os.listdir(csv_folder) if f.endswith(".csv")]
 
-        # Recompute USUBJID_numeric dynamically based on the filtered data
-        df2['USUBJID_numeric'] = pd.Categorical(df2['USUBJID']).codes
+    st.markdown('#### Swimmer Plot for Treatment Exposure and Objective Response')
+    # Sidebar: Select CSV file
+    st.sidebar.markdown("## Select a CSV File")
+    selected_csv1 = st.sidebar.selectbox("Choose first file", csv_files, index=0)
+    selected_csv2 = st.sidebar.selectbox("Choose second file", csv_files, index=1)
 
-        # Pass the updated DataFrame to the plot functions
-        selected_trt = df2['TRT01P'].unique()
-        selected_avalc = st.sidebar.multiselect("Select Responses to Highlight", options=['CR', 'PR', 'SD', 'PD', 'Death'], default=[])
-        # Add feedback if no AVALC values are selected
-        if selected_avalc:
-            with st.spinner("Generating plot with symbols..."):
-                    
-                plot_avalc_symbols(df2, selected_trt, selected_avalc)
-        else:
-            st.warning("No Response values selected. Plotting without symbols.")
-            with st.spinner("Generating plot..."):
-                    
-                plot_(df2,selected_trt)
+    # Load the selected CSV files
+    file_path1 = os.path.join(csv_folder, selected_csv1)
+    file_path2 = os.path.join(csv_folder, selected_csv2)
+
+    upload1 = pd.read_csv(file_path1)
+    upload2 = pd.read_csv(file_path2)
+
+    processed_df, unique_trt = preprocess_data_df(upload1, upload2)
+
+    
+
+    selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
+    # Filter the data based on selected treatments
+    df2 = processed_df[processed_df['TRT01P'].isin(selected_trt)]
+
+    # Recompute USUBJID_numeric dynamically based on the filtered data
+    df2['USUBJID_numeric'] = pd.Categorical(df2['USUBJID']).codes
+
+    # Pass the updated DataFrame to the plot functions
+    selected_trt = df2['TRT01P'].unique()
+    selected_avalc = st.sidebar.multiselect("Select Responses to Highlight", options=['CR', 'PR', 'SD', 'PD', 'Death'], default=[])
+    # Add feedback if no AVALC values are selected
+    if selected_avalc:
+        with st.spinner("Generating plot with symbols..."):
+                
+            plot_avalc_symbols(df2, selected_trt, selected_avalc)
     else:
-        st.info("Please upload a file to generate the plot.")
+        st.warning("No Response values selected. Plotting without symbols.")
+        with st.spinner("Generating plot..."):
+                
+            plot_(df2,selected_trt)
+
+elif data_source == "Upload CSVs":
+
+    # st.write("Selected AVALC values:", selected_avalc)
+    with st.container():
+        if upload is not None and len(upload) == 2:
+            st.markdown('#### Swimmer Plot for Treatment Exposure and Objective Response')
+            # upload_files = [file.name.replace('.sas7bdat', '') for file in upload]
+                
+            upload1 = upload[0]
+            upload2 = upload[1]
+            processed_df, unique_trt = preprocess_data(upload1, upload2)
+            selected_trt = st.sidebar.multiselect("Select Treatment to Display", options=unique_trt, default=unique_trt)
+            # Filter the data based on selected treatments
+            df2 = processed_df[processed_df['TRT01P'].isin(selected_trt)]
+
+            # Recompute USUBJID_numeric dynamically based on the filtered data
+            df2['USUBJID_numeric'] = pd.Categorical(df2['USUBJID']).codes
+
+            # Pass the updated DataFrame to the plot functions
+            selected_trt = df2['TRT01P'].unique()
+            selected_avalc = st.sidebar.multiselect("Select Responses to Highlight", options=['CR', 'PR', 'SD', 'PD', 'Death'], default=[])
+            # Add feedback if no AVALC values are selected
+            if selected_avalc:
+                with st.spinner("Generating plot with symbols..."):
+                        
+                    plot_avalc_symbols(df2, selected_trt, selected_avalc)
+            else:
+                st.warning("No Response values selected. Plotting without symbols.")
+                with st.spinner("Generating plot..."):
+                        
+                    plot_(df2,selected_trt)
+        else:
+            st.info("Please upload a file to generate the plot.")
+
+
