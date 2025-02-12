@@ -428,7 +428,7 @@ def plot_(data,selected_trt):
     st.pyplot(plt.gcf())
 
 
-data_source = st.sidebar.radio("Select Data Source", ["Pre-loaded CSVs", "Upload CSVs"])
+data_source = st.sidebar.radio("Select Data Source", ["Pre-loaded CSVs", "Upload SAS Datasets"])
 
 st.sidebar.markdown("## User Inputs")
 st.sidebar.markdown("\n")
@@ -478,7 +478,7 @@ if data_source == "Pre-loaded CSVs":
                 
             plot_(df2,selected_trt)
 
-elif data_source == "Upload CSVs":
+elif data_source == "Upload SAS Datasets":
 
     # st.write("Selected AVALC values:", selected_avalc)
     with st.container():
